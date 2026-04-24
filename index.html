@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Decodificador — Agustín Balegno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --terracota: #C8442A;
+    --terracota-dark: #a33520;
+    --crema: #F7F4EE;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --border: rgba(26,26,26,0.12);
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--crema);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .rule {
+    width: 40px;
+    height: 2.5px;
+    background: var(--terracota);
+    margin-bottom: 1.75rem;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2rem, 6vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--terracota);
+    font-weight: 400;
+  }
+
+  .subtitle {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  .divider {
+    width: 100%;
+    height: 0.5px;
+    background: var(--border);
+    margin: 2rem 0;
+  }
+
+  .lead {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: #444;
+    margin-bottom: 2rem;
+  }
+
+  .lead strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* Form */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  input[type="text"],
+  input[type="email"] {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    background: #fff;
+    border: 0.5px solid rgba(26,26,26,0.2);
+    border-radius: 4px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus {
+    border-color: var(--terracota);
+  }
+
+  input::placeholder { color: #bbb; }
+
+  .btn {
+    margin-top: 0.5rem;
+    padding: 1rem;
+    background: var(--terracota);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn:hover { background: var(--terracota-dark); }
+  .btn:active { transform: scale(0.99); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .privacy {
+    font-size: 11.5px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 0.75rem;
+    line-height: 1.5;
+  }
+
+  /* Estado de carga */
+  .loading-text { display: none; }
+  .btn.loading .default-text { display: none; }
+  .btn.loading .loading-text { display: inline; }
+
+  /* Acceso revelado */
+  #acceso {
+    display: none;
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: #fff;
+    border: 0.5px solid var(--border);
+    border-left: 3px solid var(--terracota);
+    border-radius: 4px;
+    animation: fadeIn 0.5s ease;
+  }
+
+  #acceso.visible { display: block; }
+
+  #acceso p {
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  #acceso p strong { color: var(--ink); }
+
+  .acceso-btn {
+    display: block;
+    width: 100%;
+    padding: 0.875rem;
+    background: var(--ink);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .acceso-btn:hover { background: #333; }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    font-size: 12px;
+    color: #c0392b;
+    margin-top: 4px;
+  }
+  .error-msg.visible { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .footer {
+    margin-top: 3rem;
+    font-size: 11px;
+    color: #bbb;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="eyebrow">Academia de Bartenders · Agustín Balegno</div>
+  <div class="rule"></div>
+
+  <h1>El <em>decodificador</em><br>de respuestas</h1>
+  <p class="subtitle">Incluido en El oficio de enseñar lo que sabés</p>
+
+  <div class="divider"></div>
+
+  <p class="lead">
+    Antes de acceder, dejá tu nombre y tu email.<br>
+    <strong>No hay spam.</strong> Solo te voy a escribir si tengo algo concreto para ofrecerte — una mentoría, un programa, algo que tenga sentido para donde estás parado.
+  </p>
+
+  <form id="form" novalidate>
+    <div class="field">
+      <label for="nombre">Tu nombre</label>
+      <input type="text" id="nombre" name="nombre" placeholder="Agustín" autocomplete="given-name" required>
+      <span class="error-msg" id="err-nombre">Escribí tu nombre.</span>
+    </div>
+    <div class="field">
+      <label for="email">Tu email</label>
+      <input type="email" id="email" name="email" placeholder="vos@ejemplo.com" autocomplete="email" required>
+      <span class="error-msg" id="err-email">Necesito un email válido.</span>
+    </div>
+    <button type="submit" class="btn" id="btn">
+      <span class="default-text">Acceder al decodificador</span>
+      <span class="loading-text">Guardando...</span>
+    </button>
+    <p class="privacy">Tu email queda solo conmigo. Sin listas, sin terceros.</p>
+  </form>
+
+  <div id="acceso">
+    <p>Listo, <strong id="nombre-display"></strong>. Tu acceso está habilitado.</p>
+    <a href="https://agustinbalegnobartender.com/decodificador-balegno-2.html" class="acceso-btn" target="_blank">
+      Ir al decodificador →
+    </a>
+  </div>
+
+  <div class="footer">agustinbalegnobartender.com</div>
+
+</div>
+
+<script>
+  const SUPABASE_URL = 'TU_SUPABASE_URL';
+  const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY';
+
+  const form = document.getElementById('form');
+  const btn = document.getElementById('btn');
+  const acceso = document.getElementById('acceso');
+  const nombreDisplay = document.getElementById('nombre-display');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nombre = document.getElementById('nombre').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const errNombre = document.getElementById('err-nombre');
+    const errEmail = document.getElementById('err-email');
+
+    // Validación
+    let valid = true;
+    errNombre.classList.remove('visible');
+    errEmail.classList.remove('visible');
+
+    if (!nombre) { errNombre.classList.add('visible'); valid = false; }
+    if (!email || !email.includes('@')) { errEmail.classList.add('visible'); valid = false; }
+    if (!valid) return;
+
+    // Loading
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/leads_libro`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          nombre,
+          email,
+          fuente: 'libro_qr',
+          created_at: new Date().toISOString()
+        })
+      });
+
+      if (!res.ok) throw new Error('Error al guardar');
+
+      // Revelar acceso
+      form.style.display = 'none';
+      nombreDisplay.textContent = nombre.split(' ')[0];
+      acceso.classList.add('visible');
+
+    } catch (err) {
+      console.error(err);
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      alert('Algo falló. Intentá de nuevo.');
+    }
+  });
+</script>
+
+</body>
+</html>
