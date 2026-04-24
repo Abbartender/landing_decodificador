@@ -159,7 +159,9 @@
 
     try {
       const params = new URLSearchParams({ nombre, email, pais });
-      await fetch(`${SCRIPT_URL}?${params}`, { mode: 'no-cors' });
+      new Image().src = `${SCRIPT_URL}?${params}`;
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       document.getElementById('form').style.display = 'none';
       document.getElementById('nombre-display').textContent = nombre.split(' ')[0];
