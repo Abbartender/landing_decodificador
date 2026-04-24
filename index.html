@@ -158,12 +158,8 @@
     btn.disabled = true;
 
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, email, pais })
-      });
+      const params = new URLSearchParams({ nombre, email, pais });
+      await fetch(`${SCRIPT_URL}?${params}`, { mode: 'no-cors' });
 
       document.getElementById('form').style.display = 'none';
       document.getElementById('nombre-display').textContent = nombre.split(' ')[0];
