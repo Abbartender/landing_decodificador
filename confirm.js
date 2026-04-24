@@ -1,13 +1,12 @@
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const DECODIFICADOR_URL = 'https://agustinbalegnobartender.com/decodificador-balegno-2.html';
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { token } = req.query;
 
-  if (!token) return res.redirect('/error.html');
+  if (!token) return res.redirect('/');
 
-  // Buscar el token en Supabase
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+  const DECODIFICADOR_URL = 'https://agustinbalegnobartender.com/decodificador-balegno-2.html';
+
   const sbRes = await fetch(
     `${SUPABASE_URL}/rest/v1/leads_libro?token=eq.${token}&select=id,confirmado,token_expires`,
     {
@@ -21,14 +20,9 @@ export default async function handler(req, res) {
   const data = await sbRes.json();
   const lead = data[0];
 
-  if (!lead) return res.redirect('/error.html');
+  if (!lead) return res.redirect('/');
+  if (new Date(lead.token_expires) < new Date()) return res.redirect('/');
 
-  // Verificar que no expiró
-  if (new Date(lead.token_expires) < new Date()) {
-    return res.redirect('/expirado.html');
-  }
-
-  // Marcar como confirmado
   await fetch(`${SUPABASE_URL}/rest/v1/leads_libro?id=eq.${lead.id}`, {
     method: 'PATCH',
     headers: {
@@ -40,6 +34,5 @@ export default async function handler(req, res) {
     body: JSON.stringify({ confirmado: true })
   });
 
-  // Redirigir al decodificador
   return res.redirect(DECODIFICADOR_URL);
-}
+};
