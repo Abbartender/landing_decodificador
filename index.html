@@ -39,7 +39,7 @@
   form { display: flex; flex-direction: column; gap: 1rem; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
-  input[type="text"], input[type="email"], select {
+  input[type="text"], input[type="email"], input[type="tel"], select {
     width: 100%; padding: 0.875rem 1rem;
     font-family: 'DM Sans', sans-serif; font-size: 1rem;
     background: #fff; border: 0.5px solid rgba(26,26,26,0.2);
@@ -88,18 +88,22 @@
   <form id="form" novalidate>
     <div class="field">
       <label for="nombre">Tu nombre</label>
-      <input type="text" id="nombre" placeholder="Agustín" autocomplete="given-name" required>
+      <input type="text" id="nombre" name="nombre" placeholder="Agustín" autocomplete="given-name" required>
       <span class="error-msg" id="err-nombre">Escribí tu nombre.</span>
     </div>
     <div class="field">
       <label for="email">Tu email</label>
-      <input type="email" id="email" placeholder="vos@ejemplo.com" autocomplete="email" required>
+      <input type="email" id="email" name="email" placeholder="vos@ejemplo.com" autocomplete="email" required>
       <span class="error-msg" id="err-email">Necesito un email válido.</span>
+    </div>
+    <div class="field">
+      <label for="telefono">Tu teléfono</label>
+      <input type="tel" id="telefono" name="telefono" placeholder="+54 9 11 1234 5678" autocomplete="tel">
     </div>
     <div class="field">
       <label for="pais">Tu país</label>
       <div class="select-wrap">
-        <select id="pais">
+        <select id="pais" name="pais">
           <option value="">Seleccioná tu país</option>
           <option>Argentina</option>
           <option>México</option>
@@ -134,12 +138,14 @@
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1gIs3PYklJG9DSxKV-O1-v8fj-liRDDJCxBu6S95yCwHww5T0J0DSzmqN5YSsNm7m8Q/exec';
+  const FORMSPREE = 'https://formspree.io/f/xpqkkgaq';
+
   document.getElementById('form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const nombre = document.getElementById('nombre').value.trim();
     const email = document.getElementById('email').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
     const pais = document.getElementById('pais').value;
     const btn = document.getElementById('btn');
     const errNombre = document.getElementById('err-nombre');
@@ -157,13 +163,13 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1gIs3PYklJG9DSxKV-
     btn.disabled = true;
 
     try {
-      const params = new URLSearchParams({ nombre, email, pais });
-      const iframe = document.createElement('iframe');
-iframe.style.display = 'none';
-iframe.src = `${SCRIPT_URL}?${params}`;
-document.body.appendChild(iframe);
+      const res = await fetch(FORMSPREE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ nombre, email, telefono, pais })
+      });
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      if (!res.ok) throw new Error();
 
       document.getElementById('form').style.display = 'none';
       document.getElementById('nombre-display').textContent = nombre.split(' ')[0];
