@@ -158,7 +158,10 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1gIs3PYklJG9DSxKV-
 
     try {
       const params = new URLSearchParams({ nombre, email, pais });
-      new Image().src = `${SCRIPT_URL}?${params}`;
+      const iframe = document.createElement('iframe');
+iframe.style.display = 'none';
+iframe.src = `${SCRIPT_URL}?${params}`;
+document.body.appendChild(iframe);
 
       await new Promise(resolve => setTimeout(resolve, 1500));
 
